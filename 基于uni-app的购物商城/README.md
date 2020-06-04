@@ -1,6 +1,7 @@
 # some demo
  1.稍微部署一下就可以用了。用的Hbuilder X
  2.在服务器-bin-startup.bat，可以启动本地的tomcat服务器
+    2.1 服务器的资源有点多放不进来，可以在https://share.weiyun.com/kNMQl2s8下载
  3.数据库为MySQL
  4.已知bug：
     4.1客户端：不能将同一个商品多次加入购物车，忘记加重复叠加判断了。
