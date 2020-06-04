@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*" />
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet"/>
+		<title></title>
+	</head>
+	<body background="img/bg-fix.jpg" style="background-repeat: no-repeat; background-attachment: fixed; background-size: cover;">
+		<script type="text/javascript" src="topnav.js"></script>
+		<h1 style="font-size: 5.25rem; 
+				padding-left: 3.125rem; 
+				padding-bottom: 1rem;
+				border-bottom: #6C757D; 
+				border-bottom-style: solid;
+				border-width: thin;">商品分类管理</h1>
+		<div style="text-align: center; margin-top: 1.125rem;">
+			<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+			data-toggle="modal" data-target="#myModal">新增分类+</button>
+		</div>		
+		<div style="width:80%;margin-left:auto;margin-right:auto;">
+			<table class="table table-default  table-hover">
+				<thead>
+					<tr>
+						<th>分类号</th>
+						<th>分类名</th>
+						<th>创建时间</th>
+						<th>备注</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="app1">
+					<template v-if="category.length">
+						<tr v-for="(item,index) in category">
+							<th style="vertical-align: middle;">{{item.id}}</th>
+							<th style="vertical-align: middle;">{{item.name}}</th>
+							<th style="vertical-align: middle;">{{item.create_time}}</th>
+							<th style="vertical-align: middle;">{{item.desc}}</th>
+							<th>
+								<button class="btn btn-default"
+								style="border-color:#79905A;color: #79905A;'"
+								data-toggle="modal" data-target="#myModal1" v-on:click="openModel(index)">
+										修改
+								</button>
+							</th>
+						</tr>
+					</template>
+					<template v-else>
+						<tr>
+							<th>暂无分类</th>
+						</tr>
+					</template>
+				</tbody>
+			</table>
+			<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+				<div class="modal-dialog modal-lg">
+					<div class="modal-content" id="app2">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+								&times;
+							</button>
+							<h4 class="modal-title" id="myModalLabel">
+								新增分类 ADDCATEGORY
+							</h4>
+						</div>
+						<div class="modal-body">
+							<form class="form-horizontal" role="form" >
+								<div class="form-group">
+									<label class="control-label col-md-1">分类名</label>
+									<div class="col-md-5">
+									    <input class="form-control" type="text" placeholder="请输入新的分类名" v-model="name"/>
+									</div>
+									<label class="control-label col-md-1">备注</label>
+									<div class="col-md-5">
+										<input class="form-control" type="text" placeholder="请输入备注" v-model="desc"/>
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button  type="button" class="btn btn-default" style="border-color:royalblue;color: royalblue;" v-on:click="submit()">提交</button>
+							<button type="button" class="btn btn-default" v-on:click="closeModel()">关闭
+							</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal -->
+			</div>
+			<div class="modal fade" id="myModal1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+				<div class="modal-dialog modal-lg">
+					<div class="modal-content" id="app3">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+								&times;
+							</button>
+							<h4 class="modal-title" id="myModalLabel1">
+								修改分类 UPDATECATEGORY
+							</h4>
+						</div>
+						<div class="modal-body">
+							<form class="form-horizontal" role="form" >
+								<div class="form-group">
+									<label class="control-label col-md-1">分类名</label>
+									<div class="col-md-5">
+									    <input class="form-control" type="text" placeholder="请输入新的分类名" v-model="name"/>
+									</div>
+									<label class="control-label col-md-1">备注</label>
+									<div class="col-md-5">
+										<input class="form-control" type="text" placeholder="请输入备注" v-model="desc"/>
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button  type="button" class="btn btn-default" style="border-color:royalblue;color: royalblue;" v-on:click="submit()">提交</button>
+							<button type="button" class="btn btn-default" v-on:click="closeModel()">关闭
+							</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal -->
+			</div>
+		</div>
+		<script type="text/javascript">
+			var app1 = new Vue({
+				el:'#app1',
+				data:{
+					category:[],
+					oldCategory:[]
+				},
+				methods:{
+					openModel(e){
+						app3.name = this.category[e].name
+						app3.desc = this.category[e].desc
+						app3.id = this.category[e].id
+					},
+				}
+			})
+			var app2 = new Vue({
+				el:'#app2',
+				data:{
+					name:"",
+					desc:""
+				},
+				methods:{
+					submit(){
+						if(window.confirm("确定提交吗?")){
+							if(this.name == ""){
+								alert("分类名不能为空")
+								return
+							}
+							var reg = /^[\u4E00-\u9FA5A-Za-z0-9]+$/;
+							if(!reg.test(this.name)){
+								alert("分类名不能有特殊符号")
+								return
+							}
+							$.ajax({
+								type:"post",
+								url:"http://localhost:8080/store/addCategory_admin",
+								data:{
+									name:this.name,
+									desc:this.desc,
+								},
+								dataType:"json",
+								contentType:"application/x-www-form-urlencoded",						
+							});
+							alert("新增成功");
+							$('#myModal').modal('hide')
+							this.name = ""
+							this.desc = ""
+							getData();
+						}else{
+							return
+						}
+					},
+					closeModel(){
+						if(window.confirm("关闭不会保存任何数据，确定吗?")){
+							 $('#myModal').modal('hide')
+						}else{
+							return
+						}
+					}
+				}
+			})
+			var app3 = new Vue({
+				el:'#app3',
+				data:{
+					name:"",
+					desc:"",
+					id:""
+				},
+				methods:{
+					submit(){
+						if(window.confirm("确定提交吗?")){
+							if(this.name == ""){
+								alert("分类名不能为空")
+								return
+							}
+							var reg = /^[\u4E00-\u9FA5A-Za-z0-9]+$/;
+							if(!reg.test(this.name)){
+								alert("分类名不能有特殊符号")
+								return
+							}
+							$.ajax({
+								type:"post",
+								url:"http://localhost:8080/store/updateCategory_admin",
+								data:{
+									name:this.name,
+									desc:this.desc,
+									id:this.id
+								},
+								dataType:"json",
+								contentType:"application/x-www-form-urlencoded",						
+							});
+							alert("修改成功");
+							$('#myModal1').modal('hide')
+							getData();
+						}else{
+							return
+						}
+					},
+					closeModel(){
+						if(window.confirm("关闭不会保存任何数据，确定吗?")){
+							 //location.reload(true)
+							 app1.category= JSON.parse(JSON.stringify(app1.oldCategory))
+							 $('#myModal1').modal('hide')
+						}else{
+							return
+						}
+					}
+				}
+			})
+			function getData(){
+				$.ajax({
+					type:"get",
+					url:"http://localhost:8080/store/getCategory",
+					async:true,
+					success:function(data) {
+						app1.category = data
+						app1.oldCategory = data
+					}
+				});
+			}
+			window.onload = getData;
+		</script>
+	</body>
+</html>

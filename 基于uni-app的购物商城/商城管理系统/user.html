@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*" />
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet"/>
+		<title></title>
+	</head>
+	<body background="img/bg-fix.jpg" style="background-repeat: no-repeat; background-attachment: fixed; background-size: cover;">
+		<script type="text/javascript" src="topnav.js"></script>
+		<h1 style="font-size: 5.25rem; 
+				padding-left: 3.125rem; 
+				padding-bottom: 1rem;
+				border-bottom: #6C757D; 
+				border-bottom-style: solid;
+				border-width: thin;">用户管理</h1>
+		<h4 style="margin-left: 18.25rem;margin-top: 3.125rem;">按条件搜索:</h4>
+		<form style="width: 80%;margin-left:auto;margin-right:auto;" id="app2">
+			<div class="form-horizontal"  >
+				<div class="form-group">
+					<label class="control-label col-md-1">用户号</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="请输入用户号" v-model="id"/>
+					</div>
+					<label class="control-label col-md-1">用户名</label>
+					<div class="col-md-5">
+						<input class="form-control" type="text" placeholder="请输入用户名" v-model="name"/>							
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-md-1">联系电话</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="请输入联系电话" v-model="phone"/>
+					</div>
+					<label class="control-label col-md-1">邮箱</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="邮箱" v-model="email"/>
+					</div>
+				</div>
+			</div>
+			<div style="text-align: center;">
+				<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+				v-on:click="search()">搜索</button>
+				<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+				v-on:click="reset()">重置</button>
+			</div>
+		</form>
+		<div style="border-bottom: #6C757D; border-bottom-style: solid;border-width: thin;margin-top: 1.125rem;"></div>
+		<div style="width:80%;margin-left:auto;margin-right:auto;">
+			<table class="table table-default  table-hover">
+				<thead>
+					<tr>
+						<th>用户号</th>
+						<th>用户名</th>
+						<th>性别</th>
+						<th>生日</th>
+						<th>邮箱</th>
+						<th>联系电话</th>
+						<th>登录账号</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="app1">
+					<template v-if="user.length">
+						<tr v-for="(item,index) in user">
+							<th style="vertical-align: middle;">{{item.id}}</th>
+							<th style="vertical-align: middle;">{{item.name}}</th>
+							<th style="vertical-align: middle;">{{item.sex}}</th>
+							<th style="vertical-align: middle;">{{item.birthday}}</th>
+							<th style="vertical-align: middle;">{{item.email}}</th>
+							<th style="vertical-align: middle;">{{item.phone}}</th>
+							<th style="vertical-align: middle;">{{item.account_name}}</th>
+							<th>
+								<button class="btn btn-default"
+								style="border-color:#79905A;color: #79905A;'"
+								data-toggle="modal" data-target="#myModal" v-on:click="openModel(index)">
+										修改密码
+								</button>
+							</th>
+						</tr>
+					</template>
+					<template v-else>
+						<tr>
+							<th>暂无用户</th>
+						</tr>
+					</template>
+				</tbody>
+			</table>
+		</div>
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content" id="app3">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+							&times;
+						</button>
+						<h4 class="modal-title" id="myModalLabel">
+							修改密码 UPDATEPASSWORD
+						</h4>
+					</div>
+					<div class="modal-body">
+						<form class="form-horizontal" role="form" >
+							<div class="form-group">
+								<label class="control-label col-md-1">新密码</label>
+								<div class="col-md-10">
+								    <input class="form-control" type="text" placeholder="请输入新的密码" v-model="newPassword"/>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button  type="button" class="btn btn-default" style="border-color:royalblue;color: royalblue;" v-on:click="submit()">提交</button>
+						<button type="button" class="btn btn-default" v-on:click="closeModel()">关闭
+						</button>
+					</div>
+				</div><!-- /.modal-content -->
+			</div><!-- /.modal -->
+		</div>
+		<script type="text/javascript">
+			var app1 = new Vue({
+				el:'#app1',
+				data:{
+					user:[],
+					oldUser:[]
+				},
+				methods:{
+					openModel(e){
+						app3.index = this.user[e].id
+					}
+				}
+			})
+			var app2 = new Vue({
+				el:'#app2',
+				data:{
+					id:"",
+					name:"",
+					phone:"",
+					email:""
+				},
+				methods:{
+					reset(){
+						location.reload(true)
+					},
+					search(){
+						var reg = /^[0-9]+$/;//只能为数字
+						var reg1 = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/; //邮箱
+						var reg2 = /^[\u4E00-\u9FA5A-Za-z0-9]+$/;//不能出现特殊符号
+						if(this.id!=""&&!reg.test(this.id)){
+							alert('用户号只能为数字！');
+							return false;
+						}
+						if(this.name!=""&&!reg2.test(this.name)){
+							alert('用户名不能出现特殊符号！');
+							return false;
+						}
+						if(this.phone!=""&&!reg.test(this.phone)){
+							alert('联系号码输入有误');
+							return false;
+						}
+						if(this.email!=""&&!reg1.test(this.email)){
+							alert('邮箱输入有误');
+							return false;
+						}
+						$.ajax({
+							type:"post",
+							url:"http://localhost:8080/store/userSearch_admin",
+							data:{
+								id:this.id,
+								name:this.name,
+								phone:this.phone,
+								email:this.email
+							},
+							dataType:"json",
+							contentType:"application/x-www-form-urlencoded",
+							success:function(data) {
+								app1.user = data
+							}
+						});
+					}
+				}
+			})
+			var app3 = new Vue({
+				el:'#app3',
+				data:{
+					newPassword:"",
+					index:""
+				},
+				methods:{
+					submit(){
+						var reg = /^[0-9]{6,20}$/ //6-20位密码
+						if(this.newPassword == ""){
+							alert("新密码不能为空")
+							return
+						}
+						if(!reg.test(this.newPassword)){
+							alert("密码需要6-20位数字")
+							return
+						}
+						if(window.confirm("确定提交吗?")){
+							$.ajax({
+								type:"post",
+								url:"http://localhost:8080/store/updateUserPwd_admin",
+								data:{
+									newPassword:this.newPassword,
+									id:this.index,
+								},
+								dataType:"json",
+								contentType:"application/x-www-form-urlencoded",						
+							});
+							alert("修改成功");
+							$('#myModal').modal('hide')
+							this.newPassword = ""
+							getData();
+						}else{
+							return
+						}
+					},
+					closeModel(){
+						if(window.confirm("关闭不会保存任何数据，确定吗?")){
+							 $('#myModal').modal('hide')
+							 app1.user= JSON.parse(JSON.stringify(app1.oldUser))
+							 app3.newPassword = ""
+						}else{
+							return
+						}
+					}
+				}
+			})
+			function getData(){
+				$.ajax({
+					type:"get",
+					url:"http://localhost:8080/store/getUser_admin",
+					async:true,
+					success:function(data) {
+						app1.user = data
+						app1.oldUser = data
+					}
+				});
+			}
+			window.onload = getData;
+		</script>
+	</body>
+</html>

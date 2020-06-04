@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*" />
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet"/>
+		<title></title>
+	</head>
+	<body background="img/bg-fix.jpg" style="background-repeat: no-repeat; background-attachment: fixed; background-size: cover;">
+		<script type="text/javascript" src="topnav.js"></script>
+		<h1 style="font-size: 5.25rem;
+				padding-left: 3.125rem; 
+				padding-bottom: 1rem;
+				border-bottom: #6C757D; 
+				border-bottom-style: solid;
+				border-width: thin;">商品信息管理</h1>
+		<!-- 搜索 -->
+		<h4 style="margin-left: 18.25rem;margin-top: 3.125rem;">按条件搜索:</h4>
+		<form style="width: 80%;margin-left:auto;margin-right:auto;" id="app5">
+			<div class="form-horizontal"  >
+				<div class="form-group">
+					<label class="control-label col-md-1">商品号</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="请输入商品号" v-model="id"/>
+					</div>
+					<label class="control-label col-md-1">状态</label>
+					<div class="col-md-5">
+						<select class="form-control"  v-model="status">
+							<option value="`status`">状态不限</option>
+						    <option value="0">已下架</option>
+						    <option value="1">上架中</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-md-1">商品名</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="请输入商品名" v-model="name"/>
+					</div>
+					<label class="control-label col-md-1">分类</label>
+					<div class="col-md-5">
+					   <select class="form-control" @change="category_change">
+						    <option value="`category_id`">分类不限</option>
+					    	<option v-for="(item,index) in category" :value="item.id" >{{item.name}}</option>
+					    </select>
+					</div>
+				</div>
+			</div>
+			<div style="text-align: center;">
+				<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+				v-on:click="search()">搜索</button>
+				<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+				v-on:click="reset()">重置</button>
+			</div>
+			<div style="text-align: center; margin-top: 1.125rem;">
+				<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+				data-toggle="modal" data-target="#myModal2">新增商品+</button>
+			</div>
+		</form>
+		<div style="border-bottom: #6C757D; border-bottom-style: solid;border-width: thin;margin-top: 1.125rem;"></div>		
+		<table class="table table-default table-hover" >
+			<thead>
+				<tr>
+					<th>商品号</th>
+					<th>商品名</th>
+					<th>分类</th>
+					<th>现价</th>
+					<th>原价</th>
+					<th>描述</th>
+					<th>销量</th>
+					<th>特点</th>
+					<th>状态</th>
+					<th>规格与库存</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody id = "app3">
+				<template v-if="goods.length">
+					<tr v-for="(item,index) in goods" v-cloak>
+						<th style="vertical-align: middle;" >{{item.id}}</th>
+						<th style="vertical-align: middle;">{{item.title}}</th>
+						<th style="vertical-align: middle;">{{item.category}}</th>
+						<th style="vertical-align: middle;">{{item.oprice}}</th>
+						<th style="vertical-align: middle;">{{item.pprice}}</th>
+						<th style="vertical-align: middle;">{{item.desc}}</th>
+						<th style="vertical-align: middle;">{{item.sale_num}}</th>
+						<th style="vertical-align: middle;"
+						:style="item.spacial_category == 0 ? '' : (item.spacial_category == 1 ? 'color:palevioletred;':'color:#79905A;')">
+						{{item.spacial_category == 0 ? "无" : (item.spacial_category == 1 ? "热销" : "新品")}}
+						</th>
+						<th style="vertical-align: middle;" :style="item.status == 1 ? 'color: #79905A;' : 'color:palevioletred;'">{{item.status == 1 ? "上架中" : "已下架"}}</th>
+						<th>
+							<button class="btn btn-default"
+							:style="isStock(index) == true ? 'border-color:#79905A;color: #79905A;' : 'border-color:palevioletred;color: palevioletred;'"
+							data-toggle="modal" data-target="#myModal" v-on:click="getIndex(index)">
+									{{isStock(index) == true ? "查看详情" : "查看详情 ⚠库存不足"}}
+							</button>
+						</th>
+						<th>
+							<button class="btn btn-default"
+							style="border-color:#79905A;color: #79905A;'"
+							data-toggle="modal" data-target="#myModal1" v-on:click="openModel(index)">
+									修改
+							</button>
+						</th>
+					</tr>
+				</template>
+				<template v-else>
+					<tr>
+						<th>暂无商品</th>
+					</tr>
+				</template>
+			</tbody>
+		</table>
+		<!-- 规格详情弹出框 -->
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+							&times;
+						</button>
+						<h4 class="modal-title" id="myModalLabel">
+							商品规格 GOODS_SKU
+						</h4>
+					</div>
+					<div class="modal-body">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>序号</th>
+									<th>口味</th>
+									<th>库存</th>
+								</tr>
+							</thead>
+							<tbody id="app4">
+								<tr v-for="(item,index) in goods[attrIndex].attr">
+									<th>{{index + 1}}</th>
+									<th>{{item.content}}</th>
+									<th>{{parseInt(item.stock) &lt; 20 ? item.stock + '(库存不足)' : item.stock}} </th>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal" onclick="closeModel()">关闭
+						</button>
+					</div>
+				</div><!-- /.modal-content -->
+			</div><!-- /.modal -->
+		</div>
+		<!-- 修改商品 -->
+		<div class="modal fade" id="myModal1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+							&times;
+						</button>
+						<h4 class="modal-title" id="myModalLabel1">
+							修改商品信息 UPDATEGOODS
+						</h4>
+					</div>
+					<div class="modal-body" style="height: 51.25rem;" id="app1">
+						<form class="form-horizontal" role="form" >
+							<div class="form-group">
+								<label class="control-label col-md-1">商品名</label>
+								<div class="col-md-3">
+								    <input class="form-control" type="text" placeholder="请输入商品名" v-model="title" maxlength="10"/>
+								</div>
+								<label class="control-label col-md-1">分类</label>
+								<div class="col-md-3">
+								   <select class="form-control" @change="category_change" v-model="category_id">
+								    	<option v-for="(item,index) in category" :value="item.id" >{{item.name}}</option>
+								    </select>
+								</div>
+								<label class="control-label col-md-1">特点</label>
+								<div class="col-md-3">
+									<select class="form-control" v-model="spacial_category">
+									    <option value="0">无</option>
+									    <option value="1">热销</option>
+										<option value="2">新品</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">现价</label>
+								<div class="col-md-3">
+								    <input class="form-control" type="text" placeholder="请输入现价" v-model="pprice"/>
+								</div>
+								<label class="control-label col-md-1">原价</label>
+								<div class="col-md-3">
+									<input class="form-control" type="text" placeholder="请输入原价" v-model="oprice"/>
+								</div>
+								<label class="control-label col-md-1">状态</label>
+								<div class="col-md-3">
+									<select class="form-control" v-model="status">
+									    <option value="0">已下架</option>
+									    <option value="1">上架中</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">描述</label>
+								<div class="col-md-11">
+								    <input class="form-control" type="text" placeholder="请输入商品描述" v-model="desc" maxlength="50"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">封面图</label>
+								<div class="col-md-11">
+									<input type="file" ref="fileId" v-on:change="getImg" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">详情图</label>
+								<div class="col-md-11">
+									<input type="file" ref="fileId1" v-on:change="getImgd" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">轮播图</label>
+								<div class="col-md-11">
+									<input class="form-control" type="text" placeholder="暂未支持修改" disabled="disabled"/>
+								</div>
+							</div>
+							<!-- 规格 -->
+							<div class="form-group">
+								<label class="control-label col-md-1" style="margin-right:2.5rem;">规格</label>
+								<table class="table-default ">
+									<thead>
+										<tr>
+											<th>口味</th>
+											<th></th>
+											<th>库存</th>
+											<th></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="(item,index) in goods[attrIndex].attr">
+											<th><input type="text" class="form-control" v-model="item.content"></th>
+											<th>&nbsp;</th>
+											<th><input type="text" class="form-control" v-model="item.stock"></th>
+											<th>&nbsp;</th>
+											<th>
+												<button type="button" style="border-color:#79905A;color: #79905A;" class="btn btn-default" 
+												v-on:click="add()" v-if="index == (goods[attrIndex].attr.length-1) && index < 4">+</button>
+											</th>
+											<th>&nbsp;</th>
+											<th>
+												<button type="button" style="border-color:palevioletred;color: palevioletred;" class="btn btn-default" 
+												v-if="index == (goods[attrIndex].attr.length-1) && index != 0" v-on:click="del(index)">-</button>
+												</th>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button id="app2" type="button" class="btn btn-default" style="border-color:royalblue;color: royalblue;" v-on:click="submit()">提交</button>
+						<button type="button" class="btn btn-default" onclick="closeModel()">关闭
+						</button>
+					</div>
+				</div><!-- /.modal-content -->
+			</div><!-- /.modal -->
+		</div>
+		<!-- 新增商品 -->
+		<div class="modal fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-lg" id="app6">
+				<div class="modal-content" >
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+							&times;
+						</button>
+						<h4 class="modal-title" id="myModalLabel2">
+							新增商品 ADDGOODS
+						</h4>
+					</div>
+					<div class="modal-body" style="height: 51.25rem;">
+						<form class="form-horizontal" role="form" >
+							<div class="form-group">
+								<label class="control-label col-md-1">商品名</label>
+								<div class="col-md-3">
+								    <input class="form-control" type="text" placeholder="请输入商品名" v-model="title" maxlength="10"/>
+								</div>
+								<label class="control-label col-md-1">分类</label>
+								<div class="col-md-3">
+								   <select class="form-control" @change="category_change" v-model="category_id">
+								    	<option v-for="(item,index) in category" :value="item.id" >{{item.name}}</option>
+								    </select>
+								</div>
+								<label class="control-label col-md-1">特点</label>
+								<div class="col-md-3">
+									<select class="form-control" v-model="spacial_category">
+									    <option value="0">无</option>
+									    <option value="1">热销</option>
+										<option value="2">新品</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">现价</label>
+								<div class="col-md-3">
+								    <input class="form-control" type="text" placeholder="请输入现价" v-model="pprice"/>
+								</div>
+								<label class="control-label col-md-1">原价</label>
+								<div class="col-md-3">
+									<input class="form-control" type="text" placeholder="请输入原价" v-model="oprice"/>
+								</div>
+								<label class="control-label col-md-1">状态</label>
+								<div class="col-md-3">
+									<select class="form-control" v-model="status">
+									    <option value="0">已下架</option>
+									    <option value="1">上架中</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">描述</label>
+								<div class="col-md-11">
+								    <input class="form-control" type="text" placeholder="请输入商品描述" v-model="desc" maxlength="50"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">封面图</label>
+								<div class="col-md-11">
+									<input type="file" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">详情图</label>
+								<div class="col-md-11">
+									<input type="file" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-1">轮播图</label>
+								<div class="col-md-11">
+									<input class="form-control" type="text" placeholder="暂未支持修改" disabled="disabled"/>
+								</div>
+							</div>
+							<!-- 规格 -->
+							<div class="form-group">
+								<label class="control-label col-md-1" style="margin-right:2.5rem;">规格</label>
+								<table class="table-default ">
+									<thead>
+										<tr>
+											<th>口味</th>
+											<th></th>
+											<th>库存</th>
+											<th></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="(item,index) in attr">
+											<th><input type="text" class="form-control" v-model="item.content"></th>
+											<th>&nbsp;</th>
+											<th><input type="text" class="form-control" v-model="item.stock"></th>
+											<th>&nbsp;</th>
+											<th>
+												<button type="button" style="border-color:#79905A;color: #79905A;" class="btn btn-default" 
+												v-on:click="add()" v-if="index == (attr.length-1) && index < 4">+</button>
+											</th>
+											<th>&nbsp;</th>
+											<th>
+												<button type="button" style="border-color:palevioletred;color: palevioletred;" class="btn btn-default" 
+												v-if="index == (attr.length-1) && index != 0" v-on:click="del(index)">-</button>
+												</th>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" style="border-color:royalblue;color: royalblue;" v-on:click="submit()">提交</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+						</button>
+					</div>
+				</div><!-- /.modal-content -->
+			</div><!-- /.modal -->
+		</div>
+		<script type="text/javascript">
+			//【修改】
+			var app1 = new Vue({
+				el:'#app1',
+				data:{
+					// attr:[
+					// 	{content:"",stock:"",isShowDelete:false},
+					// ],
+					goods:[],
+					oldGoods:[],
+					attrIndex:0,
+					title:"1",
+					oprice:"",
+					pprice:"",
+					desc:"",
+					category_id:"",
+					category:[],
+					status:"",
+					spacial_category:"",
+					imgData: {
+								accept: 'image/gif, image/jpeg, image/png, image/jpg',
+							},
+					imgMain:"",
+					imgMain1:"",
+					maintype:0,
+					detailtype:0
+				},
+				methods:{
+					add(){
+						this.goods[this.attrIndex].attr.push({content:"",stock:""});
+					},
+					del(e){
+						this.goods[this.attrIndex].attr.splice(e,1);
+					},
+					category_change:function(e){
+						this.category_id = e.target.value
+					},
+					getImg(){
+						let files = this.$refs.fileId.files[0];
+						this.imgMain = files
+						this.maintype = 1
+						if(this.imgData.accept.indexOf(this.imgMain.type) == -1){
+							alert("请选择正确文件格式，支持的图片格式有image/gif, image/jpeg, image/png, image/jpg")
+							this.$refs.fileId.value = ""
+							this.imgMain = ""
+						}
+					},
+					getImgd(){
+						let files = this.$refs.fileId1.files[0];
+						this.imgMain1 = files
+						this.detailtype = 1
+						if(this.imgData.accept.indexOf(this.imgMain1.type) == -1){
+							alert("请选择正确文件格式，支持的图片格式有image/gif, image/jpeg, image/png, image/jpg")
+							this.$refs.fileId1.value = ""
+							this.imgMain1 = ""
+						}
+					}
+				}
+			})
+			//修改
+			var app2 = new Vue({
+				el:"#app2",
+				methods:{
+					submit(){
+						if(window.confirm("确定提交？")){							
+							//是否为空
+							if(app1.title==""){
+								alert("商品名不能为空")
+								return
+							}
+							if(app1.desc==""){
+								alert("商品描述不能为空")
+								return
+							}
+							if(app1.oprice==""){
+								alert("商品原价不能为空")
+								return
+							}
+							if(app1.pprice==""){
+								alert("商品现价不能为空")
+								return
+							}
+							for (let i = 0;i<app1.goods[app1.attrIndex].attr.length;i++) {
+								if(app1.goods[app1.attrIndex].attr[i].content == ""){
+									alert("商品规格第"+(i+1)+"行的口味不能为空")
+									return
+								}
+								if(app1.goods[app1.attrIndex].attr[i].stock == ""){
+									alert("商品规格第"+(i+1)+"行的库存不能为空")
+									return
+								}
+							}
+							//规范验证
+							var reg = /^[\u4E00-\u9FA5A-Za-z0-9]+$/;//不能有特殊符号
+							var reg1 = /^(([1-9]{1}\d*)|(0{1}))(\.\d{2})$/;//价格保留两位小数
+							var reg2 = /^[0-9]+$/;//只能为数字
+							var reg3 = /^[\u0391-\uFFE5A-Za-z]+$/;//只能为中文或者英文
+							if(!reg.test(app1.title)){
+								alert("商品名不能有特殊符号")
+								return
+							}
+							if(!reg1.test(app1.oprice)){
+								alert("原价格式输入有误,价格需保留两位小数")
+								return
+							}
+							if(!reg1.test(app1.pprice)){
+								alert("现价格式输入有误,价格需保留两位小数")
+								return
+							}
+							for (let i = 0;i<app1.goods[app1.attrIndex].attr.length;i++) {
+								if(!reg3.test(app1.goods[app1.attrIndex].attr[i].content)){
+									alert("商品规格第"+(i+1)+"行的口味格式有误，只能为中英文")
+									return
+								}
+								if(!reg2.test(app1.goods[app1.attrIndex].attr[i].stock)){
+									alert("商品规格第"+(i+1)+"行的库存格式有误，只能为数字")
+									return
+								}
+							}
+							$.ajax({
+								type:"post",
+								url:"http://localhost:8080/store/updateGoods_admin",
+								data:{
+									status:app1.status,
+									attr:JSON.stringify(app1.goods[app1.attrIndex].attr),
+									title:app1.title,
+									category_id:app1.category_id,
+									desc:app1.desc,
+									oprice:app1.oprice,
+									pprice:app1.pprice,
+									id:app1.goods[app1.attrIndex].id,
+									spacial_category:app1.spacial_category,
+									maintype:app1.maintype,
+									detailtype:app1.detailtype
+								},
+								dataType:"json",
+								contentType:"application/x-www-form-urlencoded",						
+							});
+							alert("修改成功");
+							app1.maintype = 0
+							app1.detailtype = 0
+							$('#myModal1').modal('hide')
+							getData();
+						}else{
+							return
+						}
+					}
+				}
+			})
+			//总表
+			var app3 = new Vue({
+				el:"#app3",
+				data:{
+					goods:[]
+				},
+				methods:{
+				   getIndex(e){
+						app4.attrIndex = e
+						app1.attrIndex = e
+					},
+					openModel(e){
+						app3.getIndex(e)
+						app1.category_id = app1.goods[app1.attrIndex].category_id
+						app1.title = app1.goods[app1.attrIndex].title
+						app1.oprice = app1.goods[app1.attrIndex].oprice
+						app1.pprice = app1.goods[app1.attrIndex].pprice
+						app1.desc = app1.goods[app1.attrIndex].desc
+						app1.status = app1.goods[app1.attrIndex].status
+						app1.spacial_category = app1.goods[app1.attrIndex].spacial_category
+					}
+				},
+				computed:{
+					isStock() {
+						return function(e){
+							let isOut = true
+							for(let i = 0;i< this.goods[e].attr.length;i++){
+								if(parseInt(this.goods[e].attr[i].stock) < 20){
+									isOut = false
+									return isOut
+								}else{
+									isOut = true
+								}
+							}
+							return isOut
+						}
+					}
+				}
+			})
+			//【商品表】规格
+			var app4 = new Vue({
+				el:"#app4",
+				data:{
+					goods:[],
+					attrIndex:0
+				}
+			})
+
+			//搜索
+			var app5 = new Vue({
+				el:"#app5",
+				data:{
+					id:"",
+					name:"",
+					category_id:"`category_id`",
+					status:"`status`",
+					category:[]
+				},
+				methods:{
+					search(){
+						//验证
+						var reg = /^[0-9]+$/;//只能为数字
+						var reg1 = /^[\u0391-\uFFE5A-Za-z]+$/;//只能为中文或者英文
+						//id验证
+						if(this.id!=""&&!reg.test(this.id)){
+						alert('商品号只能为数字！');
+						return false;
+						}
+						//商品名验证
+						if(this.name!=""&&!reg1.test(this.name)){
+						alert('商品名输入有误！');
+						return false;
+						}
+						$.ajax({
+							type:"post",
+							url:"http://localhost:8080/store/goodsSearch_admin",
+							data:{
+								status:this.status,
+								name:this.name,
+								id:this.id,
+								category_id:this.category_id
+							},
+							dataType:"json",
+							contentType:"application/x-www-form-urlencoded",
+							success:function(data) {
+								app3.goods = data
+								app4.goods = data
+							}
+						});
+					},
+					reset(){
+						location.reload(true)
+					},
+					category_change:function(e){
+						this.category_id = e.target.value
+					}
+				}
+			})
+			var app6 = new Vue({
+				el:'#app6',
+				data:{
+					attr:[
+						{content:"",stock:""},
+						],
+					oldGoods:[],
+					attrIndex:0,
+					title:"",
+					oprice:"",
+					pprice:"",
+					desc:"",
+					category_id:"",
+					category:[],
+					status:"",
+					spacial_category:"",
+				},
+				methods:{
+					add(){
+						this.attr.push({content:"",stock:""});
+					},
+					del(e){
+						this.attr.splice(e,1);
+					},
+					category_change:function(e){
+						this.category_id = e.target.value
+					},
+					submit(){
+						if(window.confirm("确定提交？")){
+							//是否为空
+							if(this.title==""){
+								alert("商品名不能为空")
+								return
+							}
+							if(this.desc==""){
+								alert("商品描述不能为空")
+								return
+							}
+							if(this.oprice==""){
+								alert("商品原价不能为空")
+								return
+							}
+							if(this.pprice==""){
+								alert("商品现价不能为空")
+								return
+							}
+							for (let i = 0;i<this.attr.length;i++) {
+								if(this.attr[i].content == ""){
+									alert("商品规格第"+(i+1)+"行的口味不能为空")
+									return
+								}
+								if(this.attr[i].stock == ""){
+									alert("商品规格第"+(i+1)+"行的库存不能为空")
+									return
+								}
+							}
+							//规范验证
+							var reg = /^[\u4E00-\u9FA5A-Za-z0-9]+$/;//不能有特殊符号
+							var reg1 = /^(([1-9]{1}\d*)|(0{1}))(\.\d{2})$/;//价格保留两位小数
+							var reg2 = /^[0-9]+$/;//只能为数字
+							var reg3 = /^[\u0391-\uFFE5A-Za-z]+$/;//只能为中文或者英文
+							if(!reg.test(this.title)){
+								alert("商品名不能有特殊符号")
+								return
+							}
+							if(!reg1.test(this.oprice)){
+								alert("原价格式输入有误,价格需保留两位小数")
+								return
+							}
+							if(!reg1.test(this.pprice)){
+								alert("现价格式输入有误,价格需保留两位小数")
+								return
+							}
+							for (let i = 0;i<this.attr.length;i++) {
+								if(!reg3.test(this.attr[i].content)){
+									alert("商品规格第"+(i+1)+"行的口味格式有误，只能为中英文")
+									return
+								}
+								if(!reg2.test(this.attr[i].stock)){
+									alert("商品规格第"+(i+1)+"行的库存格式有误，只能为数字")
+									return
+								}
+							}
+							$.ajax({
+								type:"post",
+								url:"http://localhost:8080/store/addGoods_admin",
+								data:{
+									status:this.status,
+									attr:JSON.stringify(this.attr),
+									title:this.title,
+									category_id:this.category_id,
+									desc:this.desc,
+									oprice:this.oprice,
+									pprice:this.pprice,
+									spacial_category:this.spacial_category,
+								},
+								dataType:"json",
+								contentType:"application/x-www-form-urlencoded",						
+							});
+							alert("新增成功");
+							$('#myModal2').modal('hide')
+							getData();
+						}else{
+							return
+						}
+					}
+				}
+			})
+			function getData(){
+				$.ajax({
+					type:"get",
+					url:"http://localhost:8080/store/getGoods_admin",
+					async:true,
+					success:function(data) {
+						app1.goods = data
+						app1.oldGoods = JSON.parse(JSON.stringify(data))
+						app3.goods = data
+						app4.goods = data
+					}
+				});
+				$.ajax({
+					type:"get",
+					url:"http://localhost:8080/store/getCategory",
+					async:true,
+					success:function(data) {
+						app5.category = data
+						app1.category = data
+						app6.category = data
+					}
+				});
+			}
+			window.onload = getData;
+			
+			function closeModel(){
+				if(window.confirm("关闭不会保存任何数据，确定吗?")){
+					 //location.reload(true)
+					 app1.goods= JSON.parse(JSON.stringify(app1.oldGoods))
+					 $('#myModal1').modal('hide')
+				}else{
+					return
+				}
+			}
+		</script>
+	</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Access-Control-Allow-Origin" content="*" />
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet"/>
+		<title></title>
+	</head>
+	<body background="img/bg-fix.jpg" style="background-repeat: no-repeat; background-attachment: fixed; background-size: cover;">
+		<script type="text/javascript" src="topnav.js"></script>
+		<h1 style="font-size: 5.25rem; 
+				padding-left: 3.125rem; 
+				padding-bottom: 1rem;
+				border-bottom: #6C757D; 
+				border-bottom-style: solid;
+				border-width: thin;">未发货订单管理</h1>
+		<h4 style="margin-left: 18.25rem;margin-top: 3.125rem;">按条件搜索:</h4>
+		<form style="width: 80%;margin-left:auto;margin-right:auto;" id="app3">
+			<div class="form-horizontal"  >
+				<div class="form-group">
+					<label class="control-label col-md-1">订单号</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="请输入订单号" v-model="id"/>
+					</div>
+					<label class="control-label col-md-1">订单状态</label>
+					<div class="col-md-5">
+						<select class="form-control"  v-model="status" disabled="disabled">
+						    <option value="0">待发货</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-md-1">姓名</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="请输入收货人姓名" v-model="name"/>
+					</div>
+					<label class="control-label col-md-1">手机号</label>
+					<div class="col-md-5">
+					    <input class="form-control" type="text" placeholder="请输入收货人手机号" v-model="phone"/>
+					</div>
+				</div>
+			</div>
+			<div style="text-align: center;">
+				<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+				v-on:click="search()">搜索</button>
+				<button type="button" class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+				v-on:click="reset()">重置</button>
+			</div>
+		</form>
+		<div style="border-bottom: #6C757D; border-bottom-style: solid;border-width: thin;margin-top: 3.125rem;"></div>
+		<div style="">
+			<table class="table table-default  table-hover">
+				<thead>
+					<tr>
+						<th>订单ID</th>
+						<th>用户ID</th>
+						<th>收货地址</th>
+						<th>总价格</th>
+						<th>创建时间</th>
+						<th>退款状态</th>
+						<th>退款单号</th>
+						<th>订单状态</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="app1">
+					<template v-if="order.length">
+						<tr v-for="(item,index) in order">
+							<th style="vertical-align: middle;">{{item.id}}</th>
+							<th style="vertical-align: middle;">{{item.user_id}}</th>
+							<th style="vertical-align: middle;">{{item.address}}</th>
+							<th style="vertical-align: middle;">{{item.total_price}}</th>
+							<th style="vertical-align: middle;">{{item.pay_time}}</th>
+							<th style="vertical-align: middle;">{{item.isRefund == 0 ? "用户未申请退款" : item.isRefund == 1 ? "退款中" : item.isRefund == 2 ? "退款成功" : "退款失败"}}</th>
+							<th style="vertical-align: middle;">{{item.refund_id}}</th>
+							<th style="vertical-align: middle;">{{item.status == 0 ? "待发货" : item.status == 1 ? "待收货" : item.status == 2 ? "待评价" : item.status == 3 ? "已完成" : "售后"}}</th>
+							<th>
+							<button class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+							data-toggle="modal" data-target="#myModal" v-on:click="getOrder(index)">
+							订单详情
+							</button>
+							<button class="btn btn-default" style="border-color:#79905A;color: #79905A;"
+							v-on:click="delivary(item.id)">
+							发货
+							</button>
+							</th>
+						</tr>
+					</template>
+					<template v-else>
+						<tr>
+							<th>暂无订单</th>
+						</tr>
+					</template>
+				</tbody>
+			</table>
+			<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-lg">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+								&times;
+							</button>
+							<h4 class="modal-title" id="myModalLabel">
+								订单详情 ORDERDETAIL
+							</h4>
+						</div>
+						<div class="modal-body">
+							<table class="table">
+								<thead>
+									<tr>
+										<th>商品名</th>
+										<th>口味</th>
+										<th>数量</th>
+										<th>价格</th>
+										<th>用户是否给出好评</th>
+										<th>用户的评价内容</th>
+									</tr>
+								</thead>
+								<tbody id="app2">
+									<tr v-for="(item,index) in order[orderItemIndex].orderItem">
+										<th>{{item.title}}</th>
+										<th>{{item.attr}}</th>
+										<th>{{item.num}}</th>
+										<th>{{item.pprice}}</th>
+										<th>{{item.goods_isGoodComment == 1 ? "好评" :  (item.goods_isGoodComment == null ? "用户尚未评价" : "差评")}}</th>
+										<th style="max-width: 31.25rem;">{{item.goods_comment_content}}</th>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+							</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal -->
+			</div>
+		</div>
+		<script type="text/javascript">
+			var app1= new Vue({
+				el:'#app1',
+				data:{
+					order:[]
+				},
+				methods:{
+					//订单详情
+					getOrder(e){
+						app2.orderItemIndex = e
+					},
+					//发货
+					delivary(e){
+						if(window.confirm("确定发货？")){
+							$.ajax({
+								type:"post",
+								url:"http://localhost:8080/store/delivery_admin",
+								data:{
+									order_id:e,
+								},
+								dataType:"json",
+								contentType:"application/x-www-form-urlencoded",
+							});
+							alert("发货成功，等待用户收货");
+							getData()
+						}else{
+							return 
+						}
+					}
+				}
+			})
+			var app2= new Vue({
+				el:'#app2',
+				data:{
+					order:[],
+					orderItemIndex:0
+				}
+			})
+			var app3=new Vue({
+				el:'#app3',
+				data:{
+					name:"",
+					phone:"",
+					status:"0",
+					id:"",
+				},
+				methods:{
+					search() {
+						//id验证
+						var reg = /^[0-9]+$/;//只能为数字
+						var reg1 = /^[\u0391-\uFFE5A-Za-z]+$/;//只能为中文或者英文
+						if(this.id!=""&&!reg.test(this.id)){
+						alert('订单号只能为数字！');
+						return false;
+						}
+						//联系号码验证
+						if(this.phone!=""&&!reg.test(this.phone)){
+						alert('联系号码输入有误！');
+						return false;
+						}
+						//姓名验证
+						if(this.name!=""&&!reg1.test(this.name)){
+						alert('姓名输入有误！');
+						return false;
+						}
+						let address = ""
+						if(this.name == "" && this.phone == ""){
+							address = ""
+						}else if(this.name == "" && this.phone !== ""){
+							address = this.phone
+						}else if(this.name !== "" && this.phone == ""){
+							address = this.name
+						}else{
+							address = this.name + "-" + this.phone
+						}
+						$.ajax({
+							type:"post",
+							url:"http://localhost:8080/store/orderSearch_admin",
+							data:{
+								status:this.status,
+								address:address,
+								id:this.id
+							},
+							dataType:"json",
+							contentType:"application/x-www-form-urlencoded",
+							success:function(data) {
+								app1.order = data
+								app2.order = data
+							}
+						});
+					},
+					reset(){
+						location.reload(true)
+					}
+				}
+			})
+			//进入页面时自动加载加载数据
+			function getData(){
+				$.ajax({
+					type:"get",
+					url:"http://localhost:8080/store/getUnDeliveryOrder_admin",
+					async:true,
+					success:function(data) {
+						app1.order = data
+						app2.order = data
+					}
+				});
+			}
+			window.onload = getData;
+		</script>
+	</body>
+</html>
